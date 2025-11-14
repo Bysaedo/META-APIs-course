@@ -9,11 +9,19 @@ class CategorySerializer(serializers.ModelSerializer):
       model = Category
       fields=['id', 'slug', 'title']
 class MenuItemSerializer(serializers.ModelSerializer):
+    stock =serializers.IntegerField(source='inventory', read_only=True)
     price_after_tax = serializers.SerializerMethodField(method_name='calculate_tax')
-    category=CategorySerializer
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),   
+        slug_field='slug'                  
+    )
     class Meta:
         model=MenuItem
         fields='__all__'
+        extra_kwargs = {
+            'price': {'min_value':2},
+            'inventory':{'min_value':0}
+        }
     
     def calculate_tax(self, product:MenuItem):
         return product.price* Decimal(1.1)
