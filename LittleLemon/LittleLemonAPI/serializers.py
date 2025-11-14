@@ -9,6 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
       model = Category
       fields=['id', 'slug', 'title']
 class MenuItemSerializer(serializers.ModelSerializer):
+    category_id=serializers.IntegerField(write_only=True)
     stock =serializers.IntegerField(source='inventory', read_only=True)
     price_after_tax = serializers.SerializerMethodField(method_name='calculate_tax')
     category = serializers.SlugRelatedField(
