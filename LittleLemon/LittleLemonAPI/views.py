@@ -1,14 +1,15 @@
-from rest_framework import generics
-from rest_framework import viewsets
+from rest_framework import generics,viewsets,status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, renderer_classes, permission_classes, throttle_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.throttling import AnonRateThrottle, UserRateThrottle
 from rest_framework.renderers import TemplateHTMLRenderer
-from rest_framework.decorators import api_view, renderer_classes
-from .models import MenuItem, Category
-from .serializers import MenuItemSerializer, CategorySerializer
 from django.shortcuts import get_object_or_404
-from rest_framework import status
 from django.core.paginator import Paginator, EmptyPage
+from django.contrib.auth.models import User, Group
+from .throttles import TenCallsPerMinute
+from .models import MenuItem, Category,Rating
+from .serializers import MenuItemSerializer, CategorySerializer,RatingSerializer
 
 # Create your views here.
 @api_view(['GET','POST'])
@@ -56,6 +57,44 @@ def menu(request):
     serialized_item=MenuItemSerializer(items, many=True)
     return Response({'data':serialized_item.data}, template_name='menu-items.html')
 
+@api_view()
+@permission_classes([IsAuthenticated])
+def secret(request):
+    return Response({"message":"Some secret message"})
+
+@api_view()
+@permission_classes([IsAuthenticated])
+def manager_view(request):
+    if request.user.groups.filter(name='Manager').exists():
+        return Response({"message":"Only Manager should see this"})
+    else:
+        return Response({"message":"You are not authorized"}, 403)
+    
+@api_view(['POST'])
+@permission_classes([IsAdminUser])
+def managers(request):
+    username=request.data['username']
+    if username:
+        user=get_object_or_404(User, username=username)
+        managers=Group.objects.get(name="Manager")
+        if request.method=='POST':
+            managers.user_set.add(user)
+        elif request.method=='DELETE':
+            managers.user_ser.remove(user)
+        return Response({"message": "ok"})
+    
+    return Response({"message": "error"}, status.HTTP_400_BAD_REQUEST)
+
+@api_view()
+@throttle_classes([AnonRateThrottle])
+def throttle_check(request):
+    return Response({"message": "successful"})
+
+@api_view()
+@permission_classes([IsAuthenticated])
+@throttle_classes([TenCallsPerMinute])
+def throttle_check_auth(request):
+    return Response({"message":"message for the logged in users only"})
 class MenuItemsViewSet(viewsets.ModelViewSet):
     queryset = MenuItem.objects.all()
     serializer_class = MenuItemSerializer
@@ -74,3 +113,12 @@ class MenuItemsView(generics.ListCreateAPIView):
     ordering_fields=['price', 'inventory']
     filterset_fields=['price', 'inventory']
     search_fields=['category']
+
+class RatingsView(generics.ListCreateAPIView):
+    queryset=Rating.objects.all()
+    serializer_class=RatingSerializer
+
+    def get_permissions(self):
+        if(self.request.method=='GET'):
+            return[]
+        return[IsAuthenticated()]

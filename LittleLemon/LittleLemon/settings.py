@@ -38,8 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'LittleLemonAPI',
     'django_filters',
+    'djoser',
+    #'rest_framework_simplejwt',
+    #'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -136,8 +140,24 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         ],
         'DEFAULT_PAGINATION_CLASS':'rest_framework.pagination.PageNumberPagination',
-        'PAGE_SIZE':5
+        'PAGE_SIZE':5,
+        'DEFAULT_AUTHENTICATION_CLASSES':(
+          #'rest_framework_simplejwt.authentication.JWTAuthentication',
+          'rest_framework.authentication.TokenAuthentication',
+          'rest_framework.authentication.SessionAuthentication',
+        ),
+        'DEFAULT_THROTTLE_RATES':{
+          'anon':'20/day',
+          'user':'5/minute',
+          'ten':'10/minute',
+        }
 }
+
+DJOSER ={
+  "USER_ID_FIELD":"username",
+}
+
+
 
 TEMPLATES = [
 
@@ -145,7 +165,7 @@ TEMPLATES = [
 
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
 
-        'DIRS': [BASE_DIR / 'templates'],  # Add this line
+        'DIRS': [BASE_DIR / 'templates'], 
 
         'APP_DIRS': True,
 

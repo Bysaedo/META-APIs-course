@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -13,4 +14,9 @@ class MenuItem(models.Model):
     price= models.DecimalField(max_digits=6, decimal_places=2)
     inventory=models.SmallIntegerField()
     category= models.ForeignKey(Category, on_delete=models.PROTECT, default=1)
+
+class Rating(models.Model):
+    menu_item_id=models.SmallIntegerField()
+    rating=models.SmallIntegerField()
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
 
