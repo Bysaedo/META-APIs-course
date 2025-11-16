@@ -69,7 +69,10 @@ def manager_view(request):
         return Response({"message":"Only Manager should see this"})
     else:
         return Response({"message":"You are not authorized"}, 403)
-    
+    #USERS HERE????? MANAGERS CAN UPDATE ALL DATA ON THE MENU AND UPDATE USERS TO DELIVERY PERSON
+    #IF USER DOESN'T BELONG TO ANY CATEGORY THEN IS A CUSTOMER, BE ABLE TO BROWSE MENU ITEMS, THE HAVE TO HAVE API TO ADD ITEMS TO THEIR CART AND BE ABLE TO PLACE AN ORDER, CUSTOMER CAN HAVE ONLY ONE CART WITH MULTIPLES MENU ITEMS IN IT 
+    #DELIVERY, MANAGERS MUST BE ABLE TO BROWSE, ASSIGN AND FILTER ORDERS FOR THE DELIVERY CREW, ALSO BE ABLE TO SEE THE STATUS OF THE ORDER, AFTER AUTHENTICATION DELIVERY PEOPLE SHOULD BE ABLE TO BROWSE THE ORDER ASSIGNED TO THEM, CUSTOMERS SHOULD BE ABLE TO SEE THEIR ORDERS AND STATUS
+    #THROTTLING LIMITING 5 CALLS PER MINUTE PER API
 @api_view(['POST'])
 @permission_classes([IsAdminUser])
 def managers(request):
@@ -84,7 +87,6 @@ def managers(request):
         return Response({"message": "ok"})
     
     return Response({"message": "error"}, status.HTTP_400_BAD_REQUEST)
-
 @api_view()
 @throttle_classes([AnonRateThrottle])
 def throttle_check(request):
